@@ -2,159 +2,166 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Bingo 75 - Painel Offline</title>
+<title>Bingo 75 – Painel Offline</title>
 
 <style>
-    :root {
-        --bg: #111;
-        --panel: #1c1c1c;
-        --cell: #333;
-        --accent: #ffd700;
-        --called: #0066cc;
+:root{
+    /* FUNDO */
+    --bg: #F2F2F2;        /* off-white */
+    --panel: #FFFFFF;
+
+    /* TEXTO */
+    --grid-text: #9A9A9A;
+
+    /* DESTAQUES */
+    --verde: #1F6B3B;     /* verde escuro */
+    /* --vermelho: #8B1E1E;  alternativa */
+
+    --branco: #FFFFFF;
+}
+
+*{ box-sizing:border-box }
+
+body{
+    margin:0;
+    background:var(--bg);
+    font-family:Arial,sans-serif;
+    overflow:hidden;
+}
+
+/* ===== LAYOUT ===== */
+.layout{
+    display:grid;
+    grid-template-columns:25% 75%;
+    height:100vh;
+}
+
+/* ===== NÚMERO ATUAL ===== */
+.last-area{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-right:4px solid #DDD;
+}
+
+#last{
+    font-size:clamp(96px,10vw,180px);
+    font-weight:900;
+    color:var(--verde);
+    text-align:center;
+}
+
+/* ===== PAINEL ===== */
+.board-area{
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+h1{
+    margin:4px 0 12px;
+    font-size:clamp(32px,4vw,56px);
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:#333;
+}
+
+/* ===== BINGO ===== */
+.bingo{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:24px;
+    width:100%;
+    max-width:1200px;
+    flex-grow:1;
+}
+
+/* COLUNA */
+.column{
+    background:var(--panel);
+    border-radius:18px;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    border:2px solid #DDD;
+}
+
+.column h2{
+    margin:4px 0 12px;
+    font-size:clamp(28px,3vw,44px);
+    text-align:center;
+    color:#555;
+}
+
+/* GRADE */
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    flex-grow:1;
+}
+
+/* CÉLULA */
+.cell{
+    background:transparent;
+    border:2px solid #DDD;
+    border-radius:12px;
+    padding:18px 0;
+    font-size:clamp(22px,2.4vw,36px);
+    text-align:center;
+    color:var(--grid-text);
+    user-select:none;
+    cursor:pointer;
+}
+
+/* ÚLTIMO NÚMERO CENTRAL */
+.cell.center{
+    grid-column:span 2;
+    width:85%;
+    justify-self:center;
+}
+
+/* SORTEADO */
+.cell.called{
+    background:var(--verde);
+    border-color:var(--verde);
+    color:var(--branco);
+    font-weight:900;
+    cursor:default;
+}
+
+/* CONTROLES */
+.controls{
+    margin-top:10px;
+}
+
+button{
+    font-size:20px;
+    padding:10px 28px;
+    border:none;
+    border-radius:10px;
+    background:var(--verde);
+    color:#fff;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+/* ===== TELAS MENORES ===== */
+@media (max-width:900px){
+    .layout{
+        grid-template-columns:100%;
     }
 
-    * {
-        box-sizing: border-box;
+    .last-area{
+        height:22vh;
+        border-right:none;
+        border-bottom:4px solid #DDD;
     }
-
-    body {
-        margin: 0;
-        background: var(--bg);
-        color: #fff;
-        font-family: Arial, sans-serif;
-        overflow: hidden;
-    }
-
-    /* ===== LAYOUT RESPONSIVO ===== */
-    .layout {
-        display: grid;
-        grid-template-columns: 20% 80%;
-        height: 100vh;
-    }
-
-    /* ===== NÚMERO EM DESTAQUE ===== */
-    .last-area {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #000;
-        border-right: 2px solid #333;
-    }
-
-    #last {
-        font-size: clamp(72px, 8vw, 120px);
-        font-weight: bold;
-        color: var(--accent);
-        text-align: center;
-        line-height: 1;
-    }
-
-    /* ===== ÁREA DA GRADE ===== */
-    .board-area {
-        padding: 1vh 1vw;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    h1 {
-        font-size: clamp(28px, 3vw, 52px);
-        margin: 0.5vh 0 1vh;
-        letter-spacing: 0.2em;
-        text-align: center;
-    }
-
-    .bingo {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: clamp(6px, 1vw, 14px);
-        width: 100%;
-        max-width: 1100px;
-        flex-grow: 1;
-    }
-
-    .column {
-        background: var(--panel);
-        border-radius: 14px;
-        padding: clamp(6px, 1vw, 12px);
-        display: flex;
-        flex-direction: column;
-    }
-
-    .column h2 {
-        font-size: clamp(22px, 2.5vw, 40px);
-        margin: 0.5vh 0 1vh;
-        text-align: center;
-        color: var(--accent);
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: clamp(6px, 1vh, 12px);
-        flex-grow: 1;
-    }
-
-    .cell {
-        background: var(--cell);
-        border-radius: 10px;
-        padding: clamp(8px, 1.5vh, 18px) 0;
-        font-size: clamp(18px, 2vw, 32px);
-        text-align: center;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .cell.called {
-        background: var(--called);
-        color: #fff;
-        cursor: default;
-    }
-
-    .cell.center {
-        grid-column: span 2;
-        justify-self: center;
-        width: 85%;
-    }
-
-    .controls {
-        margin-top: 0.5vh;
-    }
-
-    button {
-        font-size: clamp(14px, 1.5vw, 20px);
-        padding: 6px 20px;
-        border: none;
-        border-radius: 8px;
-        background: #900;
-        color: #fff;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background: #b00;
-    }
-
-    /* ===== TELAS PEQUENAS (celular – teste) ===== */
-    @media (max-width: 900px) {
-        .layout {
-            grid-template-columns: 100%;
-        }
-
-        .last-area {
-            border-right: none;
-            border-bottom: 2px solid #333;
-            height: 20vh;
-        }
-
-        #last {
-            font-size: clamp(48px, 10vw, 80px);
-        }
-
-        .bingo {
-            max-width: 100%;
-        }
-    }
+}
 </style>
 </head>
 
@@ -179,60 +186,59 @@
 </div>
 
 <script>
-    /* ===== CONFIGURAÇÃO ===== */
-    const TITULO = "Bingo da Oomoto";
+/* ===== CONFIGURAÇÃO ===== */
+const TITULO = "Bingo da Oomoto";
+document.getElementById("titulo").innerText = TITULO;
 
-    document.getElementById("titulo").innerText = TITULO;
+const bingo = document.getElementById("bingo");
+const last = document.getElementById("last");
 
-    const bingo = document.getElementById("bingo");
-    const last = document.getElementById("last");
+const grupos = [
+    { letra:"B", inicio:1 },
+    { letra:"I", inicio:16 },
+    { letra:"N", inicio:31 },
+    { letra:"G", inicio:46 },
+    { letra:"O", inicio:61 }
+];
 
-    const grupos = [
-        { letra: "B", inicio: 1 },
-        { letra: "I", inicio: 16 },
-        { letra: "N", inicio: 31 },
-        { letra: "G", inicio: 46 },
-        { letra: "O", inicio: 61 }
-    ];
+grupos.forEach(g=>{
+    const col=document.createElement("div");
+    col.className="column";
 
-    grupos.forEach(g => {
-        const col = document.createElement("div");
-        col.className = "column";
+    const h=document.createElement("h2");
+    h.innerText=g.letra;
+    col.appendChild(h);
 
-        const title = document.createElement("h2");
-        title.innerText = g.letra;
-        col.appendChild(title);
+    const grid=document.createElement("div");
+    grid.className="grid";
 
-        const grid = document.createElement("div");
-        grid.className = "grid";
+    for(let i=0;i<15;i++){
+        const num=g.inicio+i;
+        const cell=document.createElement("div");
+        cell.className="cell";
+        const texto=g.letra+num;
+        cell.innerText=texto;
 
-        for (let i = 0; i < 15; i++) {
-            const num = g.inicio + i;
-            const cell = document.createElement("div");
-            cell.className = "cell";
-            const texto = g.letra + num;
-            cell.innerText = texto;
+        if(i===14) cell.classList.add("center");
 
-            if (i === 14) cell.classList.add("center");
+        cell.onclick=()=>{
+            if(cell.classList.contains("called")) return;
+            cell.classList.add("called");
+            last.innerText=texto;
+        };
 
-            cell.onclick = () => {
-                if (cell.classList.contains("called")) return;
-                cell.classList.add("called");
-                last.innerText = texto;
-            };
-
-            grid.appendChild(cell);
-        }
-
-        col.appendChild(grid);
-        bingo.appendChild(col);
-    });
-
-    function resetBingo() {
-        if (!confirm("Resetar o bingo?")) return;
-        document.querySelectorAll(".cell").forEach(c => c.classList.remove("called"));
-        last.innerText = "—";
+        grid.appendChild(cell);
     }
+
+    col.appendChild(grid);
+    bingo.appendChild(col);
+});
+
+function resetBingo(){
+    if(!confirm("Resetar o bingo?")) return;
+    document.querySelectorAll(".cell").forEach(c=>c.classList.remove("called"));
+    last.innerText="—";
+}
 </script>
 
 </body>
