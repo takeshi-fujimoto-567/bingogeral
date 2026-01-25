@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Bingo 75 - Painel Offline</title>
+
+<style>
+    :root {
+        --bg: #111;
+        --panel: #1c1c1c;
+        --cell: #333;
+        --accent: #ffd700;
+        --called: #0066cc;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: #fff;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+    }
+
+    /* ===== LAYOUT RESPONSIVO ===== */
+    .layout {
+        display: grid;
+        grid-template-columns: 20% 80%;
+        height: 100vh;
+    }
+
+    /* ===== NÚMERO EM DESTAQUE ===== */
+    .last-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        border-right: 2px solid #333;
+    }
+
+    #last {
+        font-size: clamp(72px, 8vw, 120px);
+        font-weight: bold;
+        color: var(--accent);
+        text-align: center;
+        line-height: 1;
+    }
+
+    /* ===== ÁREA DA GRADE ===== */
+    .board-area {
+        padding: 1vh 1vw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    h1 {
+        font-size: clamp(28px, 3vw, 52px);
+        margin: 0.5vh 0 1vh;
+        letter-spacing: 0.2em;
+        text-align: center;
+    }
+
+    .bingo {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: clamp(6px, 1vw, 14px);
+        width: 100%;
+        max-width: 1100px;
+        flex-grow: 1;
+    }
+
+    .column {
+        background: var(--panel);
+        border-radius: 14px;
+        padding: clamp(6px, 1vw, 12px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .column h2 {
+        font-size: clamp(22px, 2.5vw, 40px);
+        margin: 0.5vh 0 1vh;
+        text-align: center;
+        color: var(--accent);
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(6px, 1vh, 12px);
+        flex-grow: 1;
+    }
+
+    .cell {
+        background: var(--cell);
+        border-radius: 10px;
+        padding: clamp(8px, 1.5vh, 18px) 0;
+        font-size: clamp(18px, 2vw, 32px);
+        text-align: center;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .cell.called {
+        background: var(--called);
+        color: #fff;
+        cursor: default;
+    }
+
+    .cell.center {
+        grid-column: span 2;
+        justify-self: center;
+        width: 85%;
+    }
+
+    .controls {
+        margin-top: 0.5vh;
+    }
+
+    button {
+        font-size: clamp(14px, 1.5vw, 20px);
+        padding: 6px 20px;
+        border: none;
+        border-radius: 8px;
+        background: #900;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #b00;
+    }
+
+    /* ===== TELAS PEQUENAS (celular – teste) ===== */
+    @media (max-width: 900px) {
+        .layout {
+            grid-template-columns: 100%;
+        }
+
+        .last-area {
+            border-right: none;
+            border-bottom: 2px solid #333;
+            height: 20vh;
+        }
+
+        #last {
+            font-size: clamp(48px, 10vw, 80px);
+        }
+
+        .bingo {
+            max-width: 100%;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <div class="last-area">
+        <div id="last">—</div>
+    </div>
+
+    <div class="board-area">
+        <h1 id="titulo"></h1>
+
+        <div class="bingo" id="bingo"></div>
+
+        <div class="controls">
+            <button onclick="resetBingo()">Resetar Bingo</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* ===== CONFIGURAÇÃO ===== */
+    const TITULO = "Bingo da Oomoto";
+
+    document.getElementById("titulo").innerText = TITULO;
+
+    const bingo = document.getElementById("bingo");
+    const last = document.getElementById("last");
+
+    const grupos = [
+        { letra: "B", inicio: 1 },
+        { letra: "I", inicio: 16 },
+        { letra: "N", inicio: 31 },
+        { letra: "G", inicio: 46 },
+        { letra: "O", inicio: 61 }
+    ];
+
+    grupos.forEach(g => {
+        const col = document.createElement("div");
+        col.className = "column";
+
+        const title = document.createElement("h2");
+        title.innerText = g.letra;
+        col.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        for (let i = 0; i < 15; i++) {
+            const num = g.inicio + i;
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            const texto = g.letra + num;
+            cell.innerText = texto;
+
+            if (i === 14) cell.classList.add("center");
+
+            cell.onclick = () => {
+                if (cell.classList.contains("called")) return;
+                cell.classList.add("called");
+                last.innerText = texto;
+            };
+
+            grid.appendChild(cell);
+        }
+
+        col.appendChild(grid);
+        bingo.appendChild(col);
+    });
+
+    function resetBingo() {
+        if (!confirm("Resetar o bingo?")) return;
+        document.querySelectorAll(".cell").forEach(c => c.classList.remove("called"));
+        last.innerText = "—";
+    }
+</script>
+
+</body>
+</html>
