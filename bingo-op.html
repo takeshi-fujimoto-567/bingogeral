@@ -18,6 +18,10 @@ body{
   padding:16px;
 }
 
+h1{
+  margin-top:0;
+}
+
 .grid{
   display:grid;
   grid-template-columns:repeat(10,1fr);
@@ -79,63 +83,84 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const ref = firebase.database().ref("bingo_atual");
+
   const titulo = document.getElementById("titulo");
   const grid = document.getElementById("grid");
 
   function letra(n){
-    if(n<=15)return"B";
-    if(n<=30)return"I";
-    if(n<=45)return"N";
-    if(n<=60)return"G";
-    return"O";
+    if(n<=15) return "B";
+    if(n<=30) return "I";
+    if(n<=45) return "N";
+    if(n<=60) return "G";
+    return "O";
   }
 
   for(let i=1;i<=75;i++){
-    const key=`${letra(i)}-${i}`;
-    const c=document.createElement("div");
-    c.className="cell";
-    c.innerText=i;
-    c.dataset.key=key;
-    c.onclick=()=>marcar(key);
+    const key = `${letra(i)}-${i}`;
+    const c = document.createElement("div");
+    c.className = "cell";
+    c.innerText = i;
+    c.dataset.key = key;
+    c.onclick = () => marcarNumero(key);
     grid.appendChild(c);
   }
 
-  function marcar(key){
-    ref.transaction(data=>{
-      if(!data) data={titulo:"Bingo da Oomoto",ultimo:"—",sorteados:{}};
-      if(data.sorteados[key]) return;
-      data.sorteados[key]=true;
-      data.ultimo=key;
+  function marcarNumero(key){
+    ref.transaction(data => {
+
+      if (!data) {
+        data = {
+          titulo: "Bingo da Oomoto",
+          ultimo: "—",
+          sorteados: {}
+        };
+      }
+
+      if (!data.sorteados) {
+        data.sorteados = {};
+      }
+
+      if (data.sorteados[key] === true) {
+        return;
+      }
+
+      data.sorteados[key] = true;
+      data.ultimo = key;
+
       return data;
     });
   }
 
-  function resetar(){
+  window.resetar = function(){
     if(!confirm("Resetar o bingo?")) return;
-    ref.set({titulo:"Bingo da Oomoto",ultimo:"—",sorteados:{}});
-  }
+    ref.set({
+      titulo: "Bingo da Oomoto",
+      ultimo: "—",
+      sorteados: {}
+    });
+  };
 
-  ref.on("value", snap=>{
-    const d=snap.val();
+  ref.on("value", snap => {
+    const d = snap.val();
 
-    if(!d || !d.sorteados){
-      titulo.innerText="Bingo da Oomoto – Operador";
-      document.querySelectorAll(".cell").forEach(c=>c.classList.remove("called"));
+    if (!d || !d.sorteados) {
+      titulo.innerText = "Bingo da Oomoto – Operador";
+      document.querySelectorAll(".cell")
+        .forEach(c => c.classList.remove("called"));
       return;
     }
 
-    titulo.innerText=d.titulo+" – Operador";
+    titulo.innerText = d.titulo + " – Operador";
 
     document.querySelectorAll(".cell").forEach(c=>{
-      if(d.sorteados[c.dataset.key] === true){
+      if (d.sorteados[c.dataset.key] === true) {
         c.classList.add("called");
-      }else{
+      } else {
         c.classList.remove("called");
       }
     });
   });
 
-  window.resetar = resetar;
 });
 </script>
 
