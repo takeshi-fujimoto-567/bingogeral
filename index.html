@@ -2,19 +2,19 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Bingo 75 – Painel Offline</title>
+<title>Bingo 75 – Painel</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
 :root{
-    --bg: #F2F2F2;          /* off-white */
-    --panel: #FFFFFF;
-
-    --grid-text: #9A9A9A;   /* cinza dos não sorteados */
-
-    --verde: #1F6B3B;       /* verde escuro */
-    /* --vermelho: #8B1E1E;  alternativa */
-
-    --branco: #FFFFFF;
+    --bg:#F2F2F2;
+    --panel:#FFFFFF;
+    --grid-text:#9A9A9A;
+    --verde:#1F6B3B;
+    --branco:#FFFFFF;
 }
 
 *{ box-sizing:border-box }
@@ -27,14 +27,14 @@ html,body{
     overflow:hidden;
 }
 
-/* ===== LAYOUT ===== */
+/* LAYOUT */
 .layout{
     display:grid;
     grid-template-columns:25% 75%;
     height:100vh;
 }
 
-/* ===== NÚMERO ATUAL ===== */
+/* DESTAQUE */
 .last-area{
     display:flex;
     align-items:center;
@@ -46,10 +46,9 @@ html,body{
     font-size:clamp(96px,10vw,180px);
     font-weight:900;
     color:var(--verde);
-    text-align:center;
 }
 
-/* ===== PAINEL ===== */
+/* PAINEL */
 .board-area{
     padding:16px;
     display:flex;
@@ -65,7 +64,7 @@ h1{
     color:#333;
 }
 
-/* ===== BINGO ===== */
+/* BINGO */
 .bingo{
     display:grid;
     grid-template-columns:repeat(5,1fr);
@@ -75,7 +74,6 @@ h1{
     flex-grow:1;
 }
 
-/* COLUNA */
 .column{
     background:var(--panel);
     border-radius:18px;
@@ -92,7 +90,6 @@ h1{
     color:#555;
 }
 
-/* GRADE */
 .grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -100,7 +97,6 @@ h1{
     flex-grow:1;
 }
 
-/* CÉLULA */
 .cell{
     background:transparent;
     border:2px solid #DDD;
@@ -109,18 +105,16 @@ h1{
     font-size:clamp(22px,2.4vw,36px);
     text-align:center;
     color:var(--grid-text);
-    user-select:none;
     cursor:pointer;
+    user-select:none;
 }
 
-/* ÚLTIMO NÚMERO CENTRAL */
 .cell.center{
     grid-column:span 2;
     width:85%;
     justify-self:center;
 }
 
-/* SORTEADO */
 .cell.called{
     background:var(--verde);
     border-color:var(--verde);
@@ -129,7 +123,6 @@ h1{
     cursor:default;
 }
 
-/* CONTROLES */
 .controls{
     margin-top:10px;
 }
@@ -146,12 +139,8 @@ button{
 
 button:hover{ opacity:0.9 }
 
-/* ===== TELAS MENORES ===== */
 @media (max-width:900px){
-    .layout{
-        grid-template-columns:100%;
-    }
-
+    .layout{ grid-template-columns:100%; }
     .last-area{
         height:22vh;
         border-right:none;
@@ -170,10 +159,8 @@ button:hover{ opacity:0.9 }
     </div>
 
     <div class="board-area">
-        <h1 id="titulo"></h1>
-
+        <h1>Bingo da Oomoto</h1>
         <div class="bingo" id="bingo"></div>
-
         <div class="controls">
             <button onclick="resetBingo()">Resetar Bingo</button>
         </div>
@@ -182,14 +169,25 @@ button:hover{ opacity:0.9 }
 </div>
 
 <script>
-/* ===== CONFIGURAÇÃO ===== */
-const TITULO = "Bingo da Oomoto";
-document.getElementById("titulo").innerText = TITULO;
+/* ===== FIREBASE CONFIG (SEU APP DO BINGO) ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBUhyCxXHxwcGIrA8hSrWoOUB55pt3fdFo",
+  authDomain: "bingo-yakisoba-kai.firebaseapp.com",
+  databaseURL: "https://bingo-yakisoba-kai-default-rtdb.firebaseio.com",
+  projectId: "bingo-yakisoba-kai",
+  storageBucket: "bingo-yakisoba-kai.firebasestorage.app",
+  messagingSenderId: "202647902902",
+  appId: "1:202647902902:web:d434bf96ae6de57de36417"
+};
 
+firebase.initializeApp(firebaseConfig);
+const ref = firebase.database().ref("bingo75");
+
+/* ===== ELEMENTOS ===== */
 const bingo = document.getElementById("bingo");
 const last  = document.getElementById("last");
 
-/* Grupos B I N G O */
+/* ===== GRUPOS ===== */
 const grupos = [
     { letra:"B", inicio:1 },
     { letra:"I", inicio:16 },
@@ -198,6 +196,7 @@ const grupos = [
     { letra:"O", inicio:61 }
 ];
 
+/* ===== MONTAR TABELA ===== */
 grupos.forEach(g=>{
     const col=document.createElement("div");
     col.className="column";
@@ -213,18 +212,25 @@ grupos.forEach(g=>{
         const num=g.inicio+i;
         const cell=document.createElement("div");
         cell.className="cell";
+        cell.innerText=num;
 
-        /* NA GRADE: SÓ O NÚMERO */
-        cell.innerText = num;
+        const key = g.letra + "-" + num;
+        cell.dataset.key = key;
 
         if(i===14) cell.classList.add("center");
 
         cell.onclick=()=>{
-            if(cell.classList.contains("called")) return;
-            cell.classList.add("called");
+            ref.once("value",snap=>{
+                const data=snap.val()||{};
+                const sorteados=data.sorteados||{};
+                if(sorteados[key]) return;
 
-            /* NO DESTAQUE: LETRA-NÚMERO */
-            last.innerText = g.letra + "-" + num;
+                sorteados[key]=true;
+                ref.set({
+                    ultimo:key,
+                    sorteados:sorteados
+                });
+            });
         };
 
         grid.appendChild(cell);
@@ -234,10 +240,24 @@ grupos.forEach(g=>{
     bingo.appendChild(col);
 });
 
+/* ===== SINCRONIZAÇÃO ===== */
+ref.on("value",snap=>{
+    const data=snap.val();
+    if(!data) return;
+
+    last.innerText = data.ultimo || "—";
+
+    document.querySelectorAll(".cell").forEach(cell=>{
+        if(data.sorteados && data.sorteados[cell.dataset.key]){
+            cell.classList.add("called");
+        }
+    });
+});
+
+/* ===== RESET ===== */
 function resetBingo(){
     if(!confirm("Resetar o bingo?")) return;
-    document.querySelectorAll(".cell").forEach(c=>c.classList.remove("called"));
-    last.innerText="—";
+    ref.set({ ultimo:"—", sorteados:{} });
 }
 </script>
 
