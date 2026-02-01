@@ -8,115 +8,17 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
-:root{
-  --bg:#F2F2F2;
-  --panel:#FFFFFF;
-  --cinza:#9A9A9A;
-  --verde:#1F6B3B;
-  --vermelho:#900;
-}
-
-*{box-sizing:border-box}
-
-html,body{
-  margin:0;
-  height:100%;
-  background:var(--bg);
-  font-family:Arial,sans-serif;
-}
-
-.layout{
-  display:grid;
-  grid-template-columns:25% 75%;
-  height:100%;
-}
-
-.destaque{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:clamp(96px,10vw,180px);
-  font-weight:900;
-  color:var(--verde);
-  border-right:4px solid #DDD;
-}
-
-.painel{
-  padding:16px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-h1{
-  margin:0 0 12px;
-  font-size:clamp(32px,4vw,56px);
-  text-transform:uppercase;
-}
-
-.bingo{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:20px;
-  width:100%;
-  max-width:1200px;
-}
-
-.col{
-  background:var(--panel);
-  border-radius:16px;
-  padding:12px;
-  border:2px solid #DDD;
-}
-
-.col h2{
-  text-align:center;
-  margin:4px 0 10px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-
-.cell{
-  text-align:center;
-  padding:16px 0;
-  border-radius:10px;
-  border:2px solid #DDD;
-  font-size:clamp(20px,2.4vw,34px);
-  color:var(--cinza);
-  cursor:pointer;
-  user-select:none;
-}
-
-.cell.center{
-  grid-column:span 2;
-  width:85%;
-  justify-self:center;
-}
-
-.cell.called{
-  background:var(--verde);
-  border-color:var(--verde);
-  color:#FFF;
-  font-weight:900;
-}
-
-.controls{
-  margin-top:16px;
-}
-
-button{
-  font-size:18px;
-  padding:12px 32px;
-  border:none;
-  border-radius:12px;
-  background:var(--vermelho);
-  color:#FFF;
-  font-weight:700;
-}
+body{margin:0;background:#F2F2F2;font-family:Arial}
+.layout{display:grid;grid-template-columns:25% 75%;height:100vh}
+.destaque{display:flex;align-items:center;justify-content:center;font-size:140px;font-weight:900;color:#1F6B3B}
+.painel{padding:16px}
+.bingo{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.col{background:#fff;border-radius:12px;padding:8px}
+.col h2{text-align:center;margin:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cell{padding:12px 0;text-align:center;border:2px solid #DDD;border-radius:8px;font-size:26px;color:#999;cursor:pointer}
+.cell.called{background:#1F6B3B;color:#fff;border-color:#1F6B3B}
+button{margin-top:12px;padding:10px 28px;font-size:18px;border:none;border-radius:10px;background:#900;color:#fff}
 </style>
 </head>
 
@@ -124,18 +26,14 @@ button{
 
 <div class="layout">
   <div class="destaque" id="ultimo">—</div>
-
   <div class="painel">
     <h1 id="titulo">Bingo da Oomoto</h1>
     <div class="bingo" id="bingo"></div>
-    <div class="controls">
-      <button onclick="resetar()">Resetar Bingo</button>
-    </div>
+    <button onclick="resetar()">Resetar Bingo</button>
   </div>
 </div>
 
 <script>
-/* ===== FIREBASE ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyBUhyCxXHxwcGIrA8hSrWoOUB55pt3fdFo",
   authDomain: "bingo-yakisoba-kai.firebaseapp.com",
@@ -149,78 +47,58 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const ref = firebase.database().ref("bingo_atual");
 
-/* ===== GRADE ===== */
-const grupos = [
+const grupos=[
   {l:"B",i:1},{l:"I",i:16},{l:"N",i:31},{l:"G",i:46},{l:"O",i:61}
 ];
 
-const bingo = document.getElementById("bingo");
+const bingo=document.getElementById("bingo");
 
 grupos.forEach(g=>{
   const col=document.createElement("div");
   col.className="col";
-
-  const h=document.createElement("h2");
-  h.innerText=g.l;
-  col.appendChild(h);
-
+  col.innerHTML=`<h2>${g.l}</h2>`;
   const grid=document.createElement("div");
   grid.className="grid";
 
   for(let x=0;x<15;x++){
     const n=g.i+x;
-    const cell=document.createElement("div");
-    cell.className="cell";
-    cell.innerText=n;
-    cell.dataset.key=g.l+"-"+n;
-    if(x===14) cell.classList.add("center");
+    const c=document.createElement("div");
+    c.className="cell";
+    c.innerText=n;
+    c.dataset.key=`${g.l}-${n}`;
 
-    cell.onclick=()=>{
-      const key=cell.dataset.key;
-      cell.classList.add("called"); // otimista
-
-      ref.once("value",snap=>{
-        const data=snap.val()||{};
-        const atual=data.sorteados||{};
-        if(atual[key]) return;
-
-        const novo={...atual,[key]:true};
-        ref.set({
-          titulo:data.titulo||"Bingo da Oomoto",
-          ultimo:key,
-          sorteados:novo
-        });
-      });
-    };
-
-    grid.appendChild(cell);
+    c.onclick=()=>marcar(c.dataset.key);
+    grid.appendChild(c);
   }
 
   col.appendChild(grid);
   bingo.appendChild(col);
 });
 
-/* ===== SINCRONIZAÇÃO ===== */
-ref.on("value",snap=>{
-  const data=snap.val();
-  if(!data) return;
-
-  titulo.innerText=data.titulo||"Bingo da Oomoto";
-  ultimo.innerText=data.ultimo||"—";
-
-  document.querySelectorAll(".cell").forEach(c=>{
-    c.classList.toggle(
-      "called",
-      data.sorteados && data.sorteados[c.dataset.key]
-    );
+function marcar(key){
+  ref.transaction(data=>{
+    if(!data) data={titulo:"Bingo da Oomoto",ultimo:"—",sorteados:{}};
+    if(data.sorteados[key]) return;
+    data.sorteados[key]=true;
+    data.ultimo=key;
+    return data;
   });
-});
+}
 
-/* ===== RESET ===== */
 function resetar(){
   if(!confirm("Resetar o bingo?")) return;
-  ref.set({ titulo:"Bingo da Oomoto", ultimo:"—", sorteados:{} });
+  ref.set({titulo:"Bingo da Oomoto",ultimo:"—",sorteados:{}});
 }
+
+ref.on("value",snap=>{
+  const d=snap.val();
+  if(!d) return;
+  titulo.innerText=d.titulo;
+  ultimo.innerText=d.ultimo;
+  document.querySelectorAll(".cell").forEach(c=>{
+    c.classList.toggle("called",d.sorteados && d.sorteados[c.dataset.key]);
+  });
+});
 </script>
 
 </body>
