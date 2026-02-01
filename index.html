@@ -6,15 +6,12 @@
 
 <style>
 :root{
-    /* FUNDO */
-    --bg: #F2F2F2;        /* off-white */
+    --bg: #F2F2F2;          /* off-white */
     --panel: #FFFFFF;
 
-    /* TEXTO */
-    --grid-text: #9A9A9A;
+    --grid-text: #9A9A9A;   /* cinza dos não sorteados */
 
-    /* DESTAQUES */
-    --verde: #1F6B3B;     /* verde escuro */
+    --verde: #1F6B3B;       /* verde escuro */
     /* --vermelho: #8B1E1E;  alternativa */
 
     --branco: #FFFFFF;
@@ -22,8 +19,9 @@
 
 *{ box-sizing:border-box }
 
-body{
+html,body{
     margin:0;
+    height:100%;
     background:var(--bg);
     font-family:Arial,sans-serif;
     overflow:hidden;
@@ -146,9 +144,7 @@ button{
     cursor:pointer;
 }
 
-button:hover{
-    opacity:0.9;
-}
+button:hover{ opacity:0.9 }
 
 /* ===== TELAS MENORES ===== */
 @media (max-width:900px){
@@ -191,8 +187,9 @@ const TITULO = "Bingo da Oomoto";
 document.getElementById("titulo").innerText = TITULO;
 
 const bingo = document.getElementById("bingo");
-const last = document.getElementById("last");
+const last  = document.getElementById("last");
 
+/* Grupos B I N G O */
 const grupos = [
     { letra:"B", inicio:1 },
     { letra:"I", inicio:16 },
@@ -216,15 +213,18 @@ grupos.forEach(g=>{
         const num=g.inicio+i;
         const cell=document.createElement("div");
         cell.className="cell";
-        const texto=g.letra+num;
-        cell.innerText=texto;
+
+        /* NA GRADE: SÓ O NÚMERO */
+        cell.innerText = num;
 
         if(i===14) cell.classList.add("center");
 
         cell.onclick=()=>{
             if(cell.classList.contains("called")) return;
             cell.classList.add("called");
-            last.innerText=texto;
+
+            /* NO DESTAQUE: LETRA-NÚMERO */
+            last.innerText = g.letra + "-" + num;
         };
 
         grid.appendChild(cell);
