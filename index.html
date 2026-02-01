@@ -2,9 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Bingo – Tela</title>
+<title>Bingo – TV</title>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -17,7 +16,7 @@
   --vermelho:#900;
 }
 
-*{ box-sizing:border-box }
+*{box-sizing:border-box}
 
 html,body{
   margin:0;
@@ -32,7 +31,6 @@ html,body{
   height:100%;
 }
 
-/* ===== DESTAQUE ===== */
 .destaque{
   display:flex;
   align-items:center;
@@ -43,7 +41,6 @@ html,body{
   border-right:4px solid #DDD;
 }
 
-/* ===== PAINEL ===== */
 .painel{
   padding:16px;
   display:flex;
@@ -57,7 +54,6 @@ h1{
   text-transform:uppercase;
 }
 
-/* ===== BINGO ===== */
 .bingo{
   display:grid;
   grid-template-columns:repeat(5,1fr);
@@ -106,10 +102,8 @@ h1{
   border-color:var(--verde);
   color:#FFF;
   font-weight:900;
-  cursor:default;
 }
 
-/* ===== CONTROLES ===== */
 .controls{
   margin-top:16px;
 }
@@ -122,7 +116,6 @@ button{
   background:var(--vermelho);
   color:#FFF;
   font-weight:700;
-  cursor:pointer;
 }
 </style>
 </head>
@@ -130,18 +123,15 @@ button{
 <body>
 
 <div class="layout">
-
   <div class="destaque" id="ultimo">—</div>
 
   <div class="painel">
     <h1 id="titulo">Bingo da Oomoto</h1>
     <div class="bingo" id="bingo"></div>
-
     <div class="controls">
       <button onclick="resetar()">Resetar Bingo</button>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -159,18 +149,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const ref = firebase.database().ref("bingo_atual");
 
-/* ===== GRUPOS ===== */
+/* ===== GRADE ===== */
 const grupos = [
-  {l:"B",i:1},
-  {l:"I",i:16},
-  {l:"N",i:31},
-  {l:"G",i:46},
-  {l:"O",i:61}
+  {l:"B",i:1},{l:"I",i:16},{l:"N",i:31},{l:"G",i:46},{l:"O",i:61}
 ];
 
 const bingo = document.getElementById("bingo");
 
-/* ===== CRIAR GRADE (CLICÁVEL) ===== */
 grupos.forEach(g=>{
   const col=document.createElement("div");
   col.className="col";
@@ -188,23 +173,22 @@ grupos.forEach(g=>{
     cell.className="cell";
     cell.innerText=n;
     cell.dataset.key=g.l+"-"+n;
-
     if(x===14) cell.classList.add("center");
 
-    /* === CLIQUE = MESMA FUNÇÃO DO OPERADOR === */
     cell.onclick=()=>{
+      const key=cell.dataset.key;
+      cell.classList.add("called"); // otimista
+
       ref.once("value",snap=>{
         const data=snap.val()||{};
-        const s=data.sorteados||{};
-        const key=cell.dataset.key;
+        const atual=data.sorteados||{};
+        if(atual[key]) return;
 
-        if(s[key]) return;
-
-        s[key]=true;
+        const novo={...atual,[key]:true};
         ref.set({
           titulo:data.titulo||"Bingo da Oomoto",
           ultimo:key,
-          sorteados:s
+          sorteados:novo
         });
       });
     };
@@ -221,11 +205,8 @@ ref.on("value",snap=>{
   const data=snap.val();
   if(!data) return;
 
-  document.getElementById("titulo").innerText =
-    data.titulo || "Bingo da Oomoto";
-
-  document.getElementById("ultimo").innerText =
-    data.ultimo || "—";
+  titulo.innerText=data.titulo||"Bingo da Oomoto";
+  ultimo.innerText=data.ultimo||"—";
 
   document.querySelectorAll(".cell").forEach(c=>{
     c.classList.toggle(
@@ -238,11 +219,7 @@ ref.on("value",snap=>{
 /* ===== RESET ===== */
 function resetar(){
   if(!confirm("Resetar o bingo?")) return;
-  ref.set({
-    titulo:"Bingo da Oomoto",
-    ultimo:"—",
-    sorteados:{}
-  });
+  ref.set({ titulo:"Bingo da Oomoto", ultimo:"—", sorteados:{} });
 }
 </script>
 
