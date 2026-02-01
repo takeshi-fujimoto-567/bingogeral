@@ -4,85 +4,53 @@
 <meta charset="UTF-8">
 <title>Bingo – Operador</title>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
 :root{
-    --bg:#F2F2F2;
-    --num:#333;
-    --called:#1F6B3B;
-    --called-text:#FFF;
+  --bg:#F2F2F2;
+  --verde:#1F6B3B;
 }
 
-*{ box-sizing:border-box }
-
 html,body{
-    margin:0;
-    height:100%;
-    background:var(--bg);
-    font-family:Arial,sans-serif;
+  margin:0;
+  height:100%;
+  background:var(--bg);
+  font-family:Arial,sans-serif;
 }
 
 .container{
-    padding:16px;
-    display:grid;
-    grid-template-rows:auto 1fr auto;
-    height:100%;
+  padding:16px;
 }
 
 h1{
-    margin:0 0 12px;
-    text-align:center;
-    font-size:clamp(24px,4vw,42px);
-    text-transform:uppercase;
-    color:#333;
+  text-align:center;
+  margin:0 0 12px;
 }
 
-/* ===== GRID 1–75 ===== */
 .grid{
-    display:grid;
-    grid-template-columns:repeat(10,1fr);
-    gap:12px;
+  display:grid;
+  grid-template-columns:repeat(10,1fr);
+  gap:12px;
 }
 
 .cell{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:14px 0;
-    font-size:clamp(18px,2.4vw,32px);
-    font-weight:700;
-    border-radius:12px;
-    border:2px solid #CCC;
-    background:#FFF;
-    color:var(--num);
-    cursor:pointer;
-    user-select:none;
+  padding:16px 0;
+  text-align:center;
+  border-radius:12px;
+  border:2px solid #CCC;
+  background:#FFF;
+  font-size:clamp(20px,3vw,36px);
+  font-weight:700;
+  cursor:pointer;
 }
 
 .cell.called{
-    background:var(--called);
-    border-color:var(--called);
-    color:var(--called-text);
-    cursor:default;
-}
-
-/* ===== CONTROLES ===== */
-.controls{
-    margin-top:14px;
-    text-align:center;
-}
-
-button{
-    font-size:18px;
-    padding:10px 26px;
-    border:none;
-    border-radius:10px;
-    background:#900;
-    color:#FFF;
-    cursor:pointer;
+  background:var(--verde);
+  border-color:var(--verde);
+  color:#FFF;
+  cursor:default;
 }
 </style>
 </head>
@@ -90,19 +58,12 @@ button{
 <body>
 
 <div class="container">
-
-    <h1 id="titulo">Bingo da Oomoto – Operador</h1>
-
-    <div class="grid" id="grid"></div>
-
-    <div class="controls">
-        <button onclick="resetar()">Resetar Bingo</button>
-    </div>
-
+  <h1 id="titulo">Bingo da Oomoto – Operador</h1>
+  <div class="grid" id="grid"></div>
 </div>
 
 <script>
-/* ===== FIREBASE CONFIG ===== */
+/* ===== FIREBASE ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyBUhyCxXHxwcGIrA8hSrWoOUB55pt3fdFo",
   authDomain: "bingo-yakisoba-kai.firebaseapp.com",
@@ -116,76 +77,55 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const ref = firebase.database().ref("bingo_atual");
 
-/* ===== ELEMENTOS ===== */
-const grid = document.getElementById("grid");
-const titulo = document.getElementById("titulo");
-
-/* ===== MAPA NÚMERO → LETRA ===== */
-function letraDoNumero(n){
-    if(n<=15) return "B";
-    if(n<=30) return "I";
-    if(n<=45) return "N";
-    if(n<=60) return "G";
-    return "O";
+/* ===== FUNÇÃO LETRA ===== */
+function letra(n){
+  if(n<=15) return "B";
+  if(n<=30) return "I";
+  if(n<=45) return "N";
+  if(n<=60) return "G";
+  return "O";
 }
 
-/* ===== CRIAR GRID 1–75 ===== */
+/* ===== CRIAR GRID ===== */
+const grid=document.getElementById("grid");
+
 for(let i=1;i<=75;i++){
-    const d=document.createElement("div");
-    d.className="cell";
-    d.innerText=i;
-    d.id="n"+i;
+  const d=document.createElement("div");
+  d.className="cell";
+  d.innerText=i;
 
-    d.onclick=()=>{
-        ref.once("value",snap=>{
-            const data=snap.val()||{};
-            const sorteados=data.sorteados||{};
+  d.onclick=()=>{
+    ref.once("value",snap=>{
+      const data=snap.val()||{};
+      const s=data.sorteados||{};
+      const key=letra(i)+"-"+i;
+      if(s[key]) return;
+      s[key]=true;
 
-            const chave = letraDoNumero(i)+"-"+i;
-            if(sorteados[chave]) return;
+      ref.set({
+        titulo:data.titulo||"Bingo da Oomoto",
+        ultimo:key,
+        sorteados:s
+      });
+    });
+  };
 
-            sorteados[chave]=true;
-
-            ref.set({
-                titulo: data.titulo || "Bingo da Oomoto",
-                ultimo: chave,
-                sorteados: sorteados
-            });
-        });
-    };
-
-    grid.appendChild(d);
+  grid.appendChild(d);
 }
 
 /* ===== SINCRONIZAÇÃO ===== */
 ref.on("value",snap=>{
-    const data=snap.val();
-    if(!data) return;
+  const data=snap.val();
+  if(!data) return;
 
-    titulo.innerText = (data.titulo || "Bingo da Oomoto") + " – Operador";
+  document.getElementById("titulo").innerText =
+    (data.titulo||"Bingo da Oomoto")+" – Operador";
 
-    document.querySelectorAll(".cell").forEach(c=>{
-        c.classList.remove("called");
-    });
-
-    if(data.sorteados){
-        Object.keys(data.sorteados).forEach(chave=>{
-            const n = chave.split("-")[1];
-            const cell = document.getElementById("n"+n);
-            if(cell) cell.classList.add("called");
-        });
-    }
+  document.querySelectorAll(".cell").forEach((c,i)=>{
+    const k=letra(i+1)+"-"+(i+1);
+    c.classList.toggle("called",data.sorteados&&data.sorteados[k]);
+  });
 });
-
-/* ===== RESET ===== */
-function resetar(){
-    if(!confirm("Resetar o bingo?")) return;
-    ref.set({
-        titulo:"Bingo da Oomoto",
-        ultimo:"—",
-        sorteados:{}
-    });
-}
 </script>
 
 </body>
