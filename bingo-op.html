@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Bingo – Operador</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -11,7 +12,11 @@
 :root{
   --bg:#F2F2F2;
   --verde:#1F6B3B;
+  --cinza:#999;
+  --vermelho:#900;
 }
+
+*{ box-sizing:border-box }
 
 html,body{
   margin:0;
@@ -22,28 +27,38 @@ html,body{
 
 .container{
   padding:16px;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  height:100%;
 }
 
 h1{
-  text-align:center;
   margin:0 0 12px;
+  text-align:center;
+  font-size:clamp(26px,4vw,42px);
+  text-transform:uppercase;
 }
 
+/* ===== GRID ===== */
 .grid{
   display:grid;
   grid-template-columns:repeat(10,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .cell{
-  padding:16px 0;
-  text-align:center;
-  border-radius:12px;
-  border:2px solid #CCC;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px 0;
+  font-size:clamp(22px,3vw,38px);
+  font-weight:900;
+  border-radius:14px;
+  border:3px solid #CCC;
   background:#FFF;
-  font-size:clamp(20px,3vw,36px);
-  font-weight:700;
+  color:#000;
   cursor:pointer;
+  user-select:none;
 }
 
 .cell.called{
@@ -52,18 +67,43 @@ h1{
   color:#FFF;
   cursor:default;
 }
+
+/* ===== CONTROLES ===== */
+.controls{
+  margin-top:18px;
+  display:flex;
+  justify-content:center;
+}
+
+button{
+  font-size:22px;
+  padding:14px 40px;
+  border:none;
+  border-radius:14px;
+  background:var(--vermelho);
+  color:#FFF;
+  font-weight:700;
+  cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
   <h1 id="titulo">Bingo da Oomoto – Operador</h1>
+
   <div class="grid" id="grid"></div>
+
+  <div class="controls">
+    <button onclick="resetar()">Resetar Bingo</button>
+  </div>
+
 </div>
 
 <script>
-/* ===== FIREBASE ===== */
+/* ===== FIREBASE CONFIG ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyBUhyCxXHxwcGIrA8hSrWoOUB55pt3fdFo",
   authDomain: "bingo-yakisoba-kai.firebaseapp.com",
@@ -86,8 +126,8 @@ function letra(n){
   return "O";
 }
 
-/* ===== CRIAR GRID ===== */
-const grid=document.getElementById("grid");
+/* ===== GRID 1–75 ===== */
+const grid = document.getElementById("grid");
 
 for(let i=1;i<=75;i++){
   const d=document.createElement("div");
@@ -97,15 +137,17 @@ for(let i=1;i<=75;i++){
   d.onclick=()=>{
     ref.once("value",snap=>{
       const data=snap.val()||{};
-      const s=data.sorteados||{};
+      const sorteados=data.sorteados||{};
       const key=letra(i)+"-"+i;
-      if(s[key]) return;
-      s[key]=true;
+
+      if(sorteados[key]) return;
+
+      sorteados[key]=true;
 
       ref.set({
-        titulo:data.titulo||"Bingo da Oomoto",
-        ultimo:key,
-        sorteados:s
+        titulo: data.titulo || "Bingo da Oomoto",
+        ultimo: key,
+        sorteados: sorteados
       });
     });
   };
@@ -119,13 +161,24 @@ ref.on("value",snap=>{
   if(!data) return;
 
   document.getElementById("titulo").innerText =
-    (data.titulo||"Bingo da Oomoto")+" – Operador";
+    (data.titulo || "Bingo da Oomoto") + " – Operador";
 
   document.querySelectorAll(".cell").forEach((c,i)=>{
-    const k=letra(i+1)+"-"+(i+1);
-    c.classList.toggle("called",data.sorteados&&data.sorteados[k]);
+    const key = letra(i+1) + "-" + (i+1);
+    c.classList.toggle("called", data.sorteados && data.sorteados[key]);
   });
 });
+
+/* ===== RESET ===== */
+function resetar(){
+  if(!confirm("Resetar o bingo inteiro?")) return;
+
+  ref.set({
+    titulo:"Bingo da Oomoto",
+    ultimo:"—",
+    sorteados:{}
+  });
+}
 </script>
 
 </body>
