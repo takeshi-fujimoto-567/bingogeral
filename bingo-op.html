@@ -12,10 +12,9 @@
   --bg:#F2F2F2;
   --verde:#1F6B3B;
   --vermelho:#900;
-  --cinza:#AAA;
 }
 
-*{ box-sizing:border-box }
+*{box-sizing:border-box}
 
 html,body{
   margin:0;
@@ -36,7 +35,6 @@ h1{
   margin:0 0 12px;
 }
 
-/* GRID */
 .grid{
   flex:1;
   display:grid;
@@ -64,7 +62,6 @@ h1{
   color:#FFF;
 }
 
-/* CONTROLES */
 .controls{
   margin-top:16px;
   text-align:center;
@@ -78,7 +75,6 @@ button{
   background:var(--vermelho);
   color:#FFF;
   font-weight:700;
-  cursor:pointer;
 }
 </style>
 </head>
@@ -87,16 +83,14 @@ button{
 
 <div class="container">
   <h1 id="titulo">Bingo – Operador</h1>
-
   <div class="grid" id="grid"></div>
-
   <div class="controls">
     <button onclick="resetar()">Resetar Bingo</button>
   </div>
 </div>
 
 <script>
-/* ===== FIREBASE ===== */
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyBUhyCxXHxwcGIrA8hSrWoOUB55pt3fdFo",
   authDomain: "bingo-yakisoba-kai.firebaseapp.com",
@@ -110,7 +104,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const ref = firebase.database().ref("bingo_atual");
 
-/* ===== MAPA NÚMERO → LETRA ===== */
 function letra(n){
   if(n<=15) return "B";
   if(n<=30) return "I";
@@ -119,48 +112,38 @@ function letra(n){
   return "O";
 }
 
-/* ===== CRIAR GRID ===== */
-const grid = document.getElementById("grid");
+const grid=document.getElementById("grid");
 
 for(let i=1;i<=75;i++){
-  const key = letra(i)+"-"+i;
-  const cell = document.createElement("div");
-  cell.className = "cell";
-  cell.innerText = i;
-  cell.dataset.key = key;
+  const key=letra(i)+"-"+i;
+  const cell=document.createElement("div");
+  cell.className="cell";
+  cell.innerText=i;
+  cell.dataset.key=key;
 
-  cell.onclick = () => marcarNumero(key);
+  cell.onclick=()=>{
+    ref.once("value",snap=>{
+      const data=snap.val()||{};
+      const atual=data.sorteados||{};
+      if(atual[key]) return;
+
+      const novo={...atual,[key]:true};
+      ref.set({
+        titulo:data.titulo||"Bingo da Oomoto",
+        ultimo:key,
+        sorteados:novo
+      });
+    });
+  };
 
   grid.appendChild(cell);
 }
 
-/* ===== MARCAR NÚMERO (ATÔMICO) ===== */
-function marcarNumero(key){
-  ref.once("value", snap=>{
-    const data = snap.val() || {};
-    const atual = data.sorteados || {};
-
-    if(atual[key]) return;
-
-    // cria NOVO objeto (não muta o antigo)
-    const novo = Object.assign({}, atual);
-    novo[key] = true;
-
-    ref.set({
-      titulo: data.titulo || "Bingo da Oomoto",
-      ultimo: key,
-      sorteados: novo
-    });
-  });
-}
-
-/* ===== SINCRONIZAÇÃO VISUAL ===== */
-ref.on("value", snap=>{
-  const data = snap.val();
+ref.on("value",snap=>{
+  const data=snap.val();
   if(!data) return;
 
-  document.getElementById("titulo").innerText =
-    (data.titulo || "Bingo da Oomoto") + " – Operador";
+  titulo.innerText=(data.titulo||"Bingo")+" – Operador";
 
   document.querySelectorAll(".cell").forEach(c=>{
     c.classList.toggle(
@@ -170,15 +153,9 @@ ref.on("value", snap=>{
   });
 });
 
-/* ===== RESET LIMPO ===== */
 function resetar(){
   if(!confirm("Resetar o bingo inteiro?")) return;
-
-  ref.set({
-    titulo: "Bingo da Oomoto",
-    ultimo: "—",
-    sorteados: {}
-  });
+  ref.set({ titulo:"Bingo da Oomoto", ultimo:"—", sorteados:{} });
 }
 </script>
 
