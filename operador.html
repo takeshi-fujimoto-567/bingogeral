@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Operador Bingo</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+
+:root{
+    --verde:#1F6B3B;
+    --cinza:#e5e5e5;
+    --fundo:#f2f2f2;
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    background:var(--fundo);
+    font-family:Arial, Helvetica, sans-serif;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    color:var(--verde);
+    margin-bottom:10px;
+}
+
+#ultimo{
+    text-align:center;
+    font-size:clamp(36px,5vw,70px);
+    font-weight:bold;
+    color:var(--verde);
+    margin-bottom:20px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
+    max-width:900px;
+    margin:auto;
+}
+
+.numero{
+
+    height:70px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:white;
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.numero:hover{
+    transform:scale(1.03);
+}
+
+.numero.sorteado{
+    background:var(--verde);
+    color:white;
+}
+
+.reset-container{
+    text-align:center;
+    margin-top:25px;
+}
+
+#reset{
+
+    background:#c62828;
+
+    color:white;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:15px 30px;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>BINGO DA OOMOTO</h1>
+
+<div id="ultimo">--</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="reset-container">
+    <button id="reset">RESETAR BINGO</button>
+</div>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUhyCxXHxwcGIrA8hSrWoOUB55pt3fdFo",
+  authDomain: "bingo-yakisoba-kai.firebaseapp.com",
+  databaseURL: "https://bingo-yakisoba-kai-default-rtdb.firebaseio.com",
+  projectId: "bingo-yakisoba-kai",
+  storageBucket: "bingo-yakisoba-kai.firebasestorage.app",
+  messagingSenderId: "202647902902",
+  appId: "1:202647902902:web:d434bf96ae6de57de36417"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const ref = firebase.database().ref("bingo_atual");
+
+function letra(numero){
+
+    if(numero <= 15) return "B";
+    if(numero <= 30) return "I";
+    if(numero <= 45) return "N";
+    if(numero <= 60) return "G";
+
+    return "O";
+}
+
+function atualizarTela(data){
+
+    document.getElementById("ultimo").innerText =
+        data?.ultimo || "--";
+
+    document.querySelectorAll(".numero").forEach(btn=>{
+
+        btn.classList.remove("sorteado");
+
+        const chave =
+            letra(Number(btn.dataset.numero))
+            + "-"
+            + Number(btn.dataset.numero);
+
+        if(data?.sorteados?.[chave]){
+
+            btn.classList.add("sorteado");
+
+        }
+
+    });
+
+}
+
+function criarGrid(){
+
+    const grid =
+        document.getElementById("grid");
+
+    for(let i=1;i<=75;i++){
+
+        const btn =
+            document.createElement("button");
+
+        btn.className = "numero";
+
+        btn.innerText =
+            String(i).padStart(2,"0");
+
+        btn.dataset.numero = i;
+
+        btn.onclick = ()=>{
+
+            const l = letra(i);
+
+            const chave =
+                l + "-" + i;
+
+            ref.child("sorteados")
+                .child(chave)
+                .set(true);
+
+            ref.child("ultimo")
+                .set(chave);
+        };
+
+        grid.appendChild(btn);
+    }
+}
+
+criarGrid();
+
+ref.on("value", snap=>{
+
+    atualizarTela(snap.val());
+
+});
+
+document
+.getElementById("reset")
+.onclick = ()=>{
+
+    if(!confirm(
+        "Resetar o bingo?"
+    )) return;
+
+    ref.set({
+        ultimo:"--",
+        sorteados:{}
+    });
+
+};
+
+</script>
+
+</body>
+</html>
