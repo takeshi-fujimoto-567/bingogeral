@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Bingo da Oomoto</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+
+:root{
+    --verde:#1F6B3B;
+    --fundo:#F2F2F2;
+    --texto:#555;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:var(--fundo);
+    font-family:Arial, Helvetica, sans-serif;
+    min-height:100vh;
+    color:var(--texto);
+}
+
+header{
+    text-align:center;
+    padding:20px 10px 10px;
+}
+
+header h1{
+    color:var(--verde);
+    font-size:clamp(28px,3vw,48px);
+    font-weight:900;
+}
+
+#ultimo{
+    text-align:center;
+    color:var(--verde);
+    font-weight:900;
+    line-height:1;
+    margin:10px 0 20px 0;
+
+    font-size:clamp(80px,12vw,220px);
+}
+
+.grade{
+
+    width:min(1400px,95vw);
+
+    margin:auto;
+
+    display:grid;
+
+    grid-template-columns:repeat(5,1fr);
+
+    gap:12px;
+
+    padding-bottom:30px;
+}
+
+.coluna{
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:10px;
+
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+
+.coluna h2{
+
+    text-align:center;
+
+    color:var(--verde);
+
+    margin-bottom:10px;
+
+    font-size:clamp(24px,3vw,42px);
+}
+
+.lista{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+}
+
+.item{
+
+    text-align:center;
+
+    font-weight:bold;
+
+    font-size:clamp(18px,2vw,30px);
+}
+
+@media(max-width:700px){
+
+    .grade{
+        gap:6px;
+    }
+
+    .coluna{
+        padding:6px;
+    }
+
+    .item{
+        font-size:16px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>BINGO DA OOMOTO</h1>
+</header>
+
+<div id="ultimo">--</div>
+
+<div class="grade">
+
+    <div class="coluna">
+        <h2>B</h2>
+        <div class="lista" id="B"></div>
+    </div>
+
+    <div class="coluna">
+        <h2>I</h2>
+        <div class="lista" id="I"></div>
+    </div>
+
+    <div class="coluna">
+        <h2>N</h2>
+        <div class="lista" id="N"></div>
+    </div>
+
+    <div class="coluna">
+        <h2>G</h2>
+        <div class="lista" id="G"></div>
+    </div>
+
+    <div class="coluna">
+        <h2>O</h2>
+        <div class="lista" id="O"></div>
+    </div>
+
+</div>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBUhyCxXHxwcGIrA8hSrWoOUB55pt3fdFo",
+  authDomain: "bingo-yakisoba-kai.firebaseapp.com",
+  databaseURL: "https://bingo-yakisoba-kai-default-rtdb.firebaseio.com",
+  projectId: "bingo-yakisoba-kai",
+  storageBucket: "bingo-yakisoba-kai.firebasestorage.app",
+  messagingSenderId: "202647902902",
+  appId: "1:202647902902:web:d434bf96ae6de57de36417"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const ref = firebase.database().ref("bingo_atual");
+
+function limparColunas(){
+
+    ["B","I","N","G","O"].forEach(letra=>{
+        document.getElementById(letra).innerHTML="";
+    });
+
+}
+
+function formatarNumero(numero){
+
+    return String(numero).padStart(2,"0");
+
+}
+
+ref.on("value", snapshot => {
+
+    const data = snapshot.val();
+
+    limparColunas();
+
+    if(!data){
+
+        document.getElementById("ultimo").innerText="--";
+
+        return;
+    }
+
+    document.getElementById("ultimo").innerText =
+        data.ultimo || "--";
+
+    if(!data.sorteados) return;
+
+    const grupos = {
+        B:[],
+        I:[],
+        N:[],
+        G:[],
+        O:[]
+    };
+
+    Object.keys(data.sorteados).forEach(chave => {
+
+        if(!data.sorteados[chave]) return;
+
+        const partes = chave.split("-");
+
+        const letra = partes[0];
+        const numero = Number(partes[1]);
+
+        grupos[letra].push(numero);
+
+    });
+
+    Object.keys(grupos).forEach(letra => {
+
+        grupos[letra]
+            .sort((a,b)=>a-b)
+            .forEach(numero => {
+
+                const div = document.createElement("div");
+
+                div.className = "item";
+
+                div.innerText = formatarNumero(numero);
+
+                document
+                    .getElementById(letra)
+                    .appendChild(div);
+
+            });
+
+    });
+
+});
+
+</script>
+
+</body>
+</html>
